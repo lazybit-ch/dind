@@ -1,0 +1,189 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "dind.fullname" . }}
+  labels:
+    {{- include "dind.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "dind.fullname" . }}
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "dind.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "dind.selectorLabels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+    spec:
+      {{- include "dind.imagePullSecrets" . | nindent 6 }}
+      serviceAccountName: {{ include "dind.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          {{- include "dind.imagePullPolicy" . | nindent 10 }}
+          securityContext:
+            privileged: true
+          ports:
+            - name: https
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+            {{- if and .Values.metrics.enabled .Values.metrics.port }}
+            - name: metrics
+              containerPort: {{ .Values.metrics.port }}
+              protocol: TCP
+            {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: /_ping
+              port: https
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: /_ping
+              port: https
+          {{- end }}
+          env:
+            - name: DIND_POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.persistence.enabled }}
+            - mountPath: /certs/client
+              name: certs
+            - mountPath: /opt/actions-runner/_work
+              name: workspace
+            {{- end }}
+            - mountPath: /etc/docker/daemon.json
+              subPath: daemon.json
+              name: {{ include "dind.fullname" . }}
+              readOnly: true
+            - mountPath: /usr/local/bin/dockerd-entrypoint.sh
+              subPath: dockerd-entrypoint.sh
+              name: {{ include "dind.fullname" . }}-entrypoint
+              readOnly: true
+            - mountPath: /lib/modules
+              name: modules
+              readOnly: true
+            - mountPath: /sys/fs/cgroup
+              name: cgroup
+            {{- if .Values.kaniko }}
+            - mountPath: /kaniko/.docker/config.json
+              subPath: config.json
+              name: docker
+              readOnly: true
+            {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+      {{- if .Values.kaniko }}
+      - name: docker
+        secret:
+          secretName: docker
+          items:
+          - key: config.json
+            path: config.json
+          defaultMode: 0420
+      {{- end }}
+      - name: cgroup
+        hostPath:
+          path: /sys/fs/cgroup
+          type: Directory
+      - name: modules
+        hostPath:
+          path: /lib/modules
+          type: Directory
+      - name: {{ include "dind.fullname" . }}
+        configMap:
+          name: {{ include "dind.fullname" . }}
+          items:
+            - key: daemon.json
+              path: daemon.json
+      - name: {{ include "dind.fullname" . }}-entrypoint
+        configMap:
+          name: {{ include "dind.fullname" . }}
+          items:
+            - key: dockerd-entrypoint.sh
+              path: dockerd-entrypoint.sh
+          defaultMode: 0755
+  {{- if .Values.persistence.enabled  }}
+    {{- if .Values.persistence.certs.existingClaim }}
+      - name: certs
+        {{- with .Values.persistence.certs.existingClaim }}
+        persistentVolumeClaim:
+          claimName: {{ tpl . $ }}
+        {{- end }}
+    {{- else if not .Values.persistence.certs.existingClaim }}
+      - name: certs
+        emptyDir: {}
+    {{- end }}
+    {{- if .Values.persistence.workspace.existingClaim }}
+      - name: workspace
+        {{- with .Values.persistence.workspace.existingClaim }}
+        persistentVolumeClaim:
+          claimName: {{ tpl . $ }}
+        {{- end }}
+    {{- else if not .Values.persistence.workspace.existingClaim }}
+      - name: workspace
+        emptyDir: {}
+    {{- end }}
+  # @TODO: not certain these should be set if persistence is disabled
+  {{- end }}
+  {{- if and .Values.persistence.enabled (or (not .Values.persistence.certs.existingClaim) (not .Values.persistence.workspace.existingClaim))}}
+  volumeClaimTemplates:
+    - metadata:
+        name: certs
+      {{- with .Values.persistence.certs.annotations }}
+        annotations:
+        {{- range $key, $value := . }}
+          {{ $key }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      spec:
+        accessModes:
+        {{- range .Values.persistence.certs.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.certs.size | quote }}
+        {{ include "dind.storageClass" . }}
+    - metadata:
+        name: workspace
+      {{- with .Values.persistence.workspace.annotations }}
+        annotations:
+        {{- range $key, $value := . }}
+          {{ $key }}: {{ $value }}
+        {{- end }}
+      {{- end }}
+      spec:
+        accessModes:
+        {{- range .Values.persistence.workspace.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.workspace.size | quote }}
+        {{ include "dind.storageClass" . }}
+  {{- end }}
