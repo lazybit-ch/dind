@@ -91,6 +91,19 @@ imagePullPolicy: {{ .Values.image.pullPolicy }}
 {{- end -}}
 
 {{/*
+Return the proper Docker Image Tag
+*/}}
+{{- define "dind.image" -}}
+{{- if .Values.global.image.tag }}
+image: "{{ .Values.image.repository }}:{{ .Values.global.image.tag }}"
+{{- else if .Values.image.tag }}
+image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+{{- else if .Chart.AppVersion }}
+image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+{{- end -}}
+{{- end -}}
+
+{{/*
 Return  the proper Storage Class
 */}}
 {{- define "dind.storageClass" -}}

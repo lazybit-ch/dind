@@ -25,7 +25,7 @@ spec:
         - name: {{ .Chart.Name }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Chart.AppVersion }}"
+          {{- include "dind.image" . | nindent 10 }}
           {{- include "dind.imagePullPolicy" . | nindent 10 }}
           securityContext:
             privileged: true
