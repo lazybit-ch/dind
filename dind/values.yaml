@@ -90,6 +90,7 @@ readinessProbe:
 
 # Mount docker secret to /kaniko/.docker
 kaniko: false
+kanikoSecretName: ""
 
 ## Docker in Docker Persistent Volume Storage Class
 ## If defined, storageClassName: <storageClass>

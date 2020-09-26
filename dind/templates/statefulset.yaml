@@ -100,7 +100,7 @@ spec:
       {{- if .Values.kaniko }}
       - name: docker
         secret:
-          secretName: docker
+          secretName: {{ .Values.kanikoSecretName | default "docker" }}
           items:
           - key: config.json
             path: config.json
