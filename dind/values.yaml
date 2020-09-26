@@ -7,13 +7,15 @@ global:
   image:
     pullPolicy: ""
     pullSecrets: []
+    tag: ""
 
 replicaCount: 1
 
 image:
-  repository: ghcr.io/lazybit-ch/dind
+  repository: lazybit/dind
   pullPolicy: IfNotPresent
   pullSecrets: []
+  tag: ""
 
 nameOverride: ""
 fullnameOverride: ""
@@ -66,6 +68,13 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
 nodeSelector: {}
 
 tolerations: []
@@ -111,7 +120,7 @@ persistence:
     # storageClass: "-"
     accessModes:
       - ReadWriteMany
-    size: 8Gi
+    size: 2Mi
     annotations: {}
 
   workspace:
