@@ -24,7 +24,7 @@ jobs:
 
       - run: |
           docker run --rm -i \
-              -v ${PWD}:/workspace/source \
+              -v ${{ github.workspace }}:/workspace/source \
               -v ${HOME}/.docker/config.json:/kaniko/.docker/config.json:ro \
               --entrypoint /kaniko/executor \
               gcr.io/kaniko-project/executor:v1.0.0 \
@@ -77,7 +77,7 @@ jobs:
 
       - run: |
           docker run --rm -i -u root \
-              -v ${PWD}:/workspace/source \
+              -v ${{ github.workspace }}:/workspace/source \
               -w /workspace/source \
               lazybit/conventional-changelog-cli -i CHANGELOG.md -s -t ${VERSION}
 
@@ -90,3 +90,41 @@ jobs:
           body_path: "${{ github.workspace }}/CHANGELOG.md"
           draft: false
           prerelease: false
+
+  stream:
+    name: stream
+    needs: release
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@master
+
+      - run: echo "::set-env name=VERSION::$(git describe --tags | sed -e 's/v//g')"
+
+      - run: |
+          docker run --rm -i \
+              -v ${PWD}:/workspace/source \
+              -w /workspace/source \
+              -e GITHUB_TOKEN=${{ secrets.GH_TOKEN }} \
+              lazybit/gh repo clone lazybit-ch/actions-runner
+
+      - run: |
+          docker run --rm -i \
+              -v ${{ github.workspace }}:/workspace/source \
+              -w /workspace/source/actions-runner/actions-runner \
+              -e VERSION=${VERSION} \
+              lazybit/chart Chart.yaml dependency dind
+
+      - run: |
+          docker run --rm -i \
+              -v ${PWD}:/workspace/source \
+              -w /workspace/source \
+              --entrypoint chown \
+              alpine:3 -R 1001:116 .
+
+      - run: |
+          echo "${{ secrets.GIT_CONFIG }}" > ${HOME}/.gitconfig
+          pushd ${{ github.workspace }}/actions-runner/actions-runner
+          git commit Chart.yaml -m "chore(deps): bump dind version to ${VERSION}"
+          git remote set-url origin https://${{ github.actor }}:${{ secrets.GH_TOKEN }}@github.com/lazybit-ch/actions-runner
+          git pull -r origin master
+          git push origin master
