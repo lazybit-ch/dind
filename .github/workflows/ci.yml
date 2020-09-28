@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - master
+
+env:
+  DOCKER_REGISTRY: lazybit.ch
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: |
+          docker run --rm -i hadolint/hadolint < Dockerfile
+
+  build:
+    name: build
+    needs: lint
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: |
+          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login ${DOCKER_REGISTRY} -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - run: |
+          docker build --rm --pull --build-arg DOCKER_VERSION=19.03.13-dind -t ${DOCKER_REGISTRY}/dind:latest .
+          docker push ${DOCKER_REGISTRY}/dind:latest
