@@ -13,12 +13,23 @@ for bootstrapping local Kubernetes clusters.
 ### pre-commit
 
 Add a [`pre-commit`](https://git-scm.com/docs/githooks#_pre_commit) hook in your local checkout
-(`${PWD}/.git/hooks/pre-commit`):
+(`${PWD}/.git/hooks/pre-commit`) to run configured [pre-commit](.pre-commit-config.yaml) hooks
+and lint the [`Dockerfile`](Dockerfile) and [Helm Chart](dind):
 ```bash
 docker run --rm -i \
     -v ${PWD}:/workspace/source \
     -w /workspace/source \
-    pre-commit run --all-files
+    lazybit/pre-commit run --all-files
+
+ocker run --rm -i \
+    -v ${PWD}:/workspace/source \
+    -w /workspace/source \
+    hadolint/hadolint < Dockerfile
+
+docker run --rm -i \
+    -v ${PWD}:/workspace/source \
+    -w /workspace/source/dind \
+    lazybit/helm lint .
 ```
 
 ### kind
