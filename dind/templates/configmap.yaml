@@ -45,6 +45,11 @@ data:
     			cat /etc/hostname
     			echo 'docker'
     			echo '{{ include "dind.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local'
+    			{{- if .Values.extraHosts }}
+    			{{- range .Values.extraHosts }}
+    			echo {{ . | squote -}}
+    			{{- end }}
+    			{{- end }}
     			echo 'localhost'
     			hostname -f
     			hostname -s

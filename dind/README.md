@@ -102,6 +102,7 @@ The following tables lists the configurable parameters of the GitHub Actions Run
 | `ingress.hosts[0].host` | | `chart-example.local` |
 | `ingress.hosts[0].paths` | | `[]` |
 | `ingress.tls` | | `[]` |
+| `extraHosts` | | `[]` |
 | `resources` | | `{}` |
 | `autoscaling.enabled` | | `false` |
 | `autoscaling.minReplicas` | | `1` |
