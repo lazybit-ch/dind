@@ -112,7 +112,7 @@ jobs:
               -v ${{ github.workspace }}:/workspace/source \
               -w /workspace/source/actions-runner/actions-runner \
               -e VERSION=${VERSION} \
-              lazybit/chart Chart.yaml dependency dind
+              lazybit/charter Chart.yaml dependency dind
 
       - run: |
           docker run --rm -i \
