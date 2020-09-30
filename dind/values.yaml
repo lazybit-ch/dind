@@ -83,6 +83,7 @@ tolerations: []
 
 affinity: {}
 
+# insecureRegistries: []
 # debug: false
 # experimental: ""
 

@@ -24,7 +24,9 @@ data:
       {{- if and .Values.metrics.enabled .Values.metrics.address }}
       "metrics-addr": "{{ .Values.metrics.address }}:{{ .Values.metrics.port }}",
       {{- end }}
-      "insecure-registries" : [],
+      {{- if .Values.insecureRegistries }}
+      "insecure-registries" : {{ toJson .Values.insecureRegistries }},
+      {{- end }}
       {{- if .Values.debug }}
       "debug": {{ .Values.debug }},
       {{- end }}

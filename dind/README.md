@@ -111,6 +111,7 @@ The following tables lists the configurable parameters of the GitHub Actions Run
 | `nodeSelector` | | `{}` |
 | `tolerations` | | `[]` |
 | `affinity` | | `{}` |
+| `insecureRegistries`| List of [insecure Docker registries](https://docs.docker.com/engine/reference/commandline/dockerd/) | `[]` |
 | `debug` | | `false` |
 | `experimental` | | `false` |
 | `metrics.enabled` | | `false` |
