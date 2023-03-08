@@ -1,5 +1,5 @@
 ARG DOCKER_VERSION
-FROM docker:${DOCKER_VERSION}
+FROM docker:${DOCKER_VERSION:-23.0.1-dind}
 
 ENV PATH /usr/local/sbin:/usr/local/bin:/usr/local/go/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
