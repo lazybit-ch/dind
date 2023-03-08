@@ -4,7 +4,7 @@ FROM docker:${DOCKER_VERSION:-23.0.1-dind}
 ENV PATH /usr/local/sbin:/usr/local/bin:/usr/local/go/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 ARG GO_VERSION
-ENV GO_VERSION=${GO_VERSION:-1.13.1}
+ENV GO_VERSION=${GO_VERSION:-1.20.2}
 
 SHELL ["/bin/ash", "-o", "pipefail", "-c"]
 
