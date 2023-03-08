@@ -130,3 +130,6 @@ The following tables lists the configurable parameters of the Docker in Docker c
 | `persistence.workspace.size` | | `8Gi` |
 | `persistence.workspace.annotations` | | `{}` |
 | `persistence.certs` | | `` |
+| `extraEnvVars` | YAML list of extra environment variables | `[]` |
+| `extraEnvVarsCM` | Name of the ConfigMap to load environment variables from | `""` |
+| `extraEnvVarsSecret` | Name of the Secret to load environment variables from | `""` |
