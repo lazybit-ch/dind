@@ -75,7 +75,7 @@ To modify the DinD version used in this chart you can specify a [valid image tag
 
 This helm chart supports customizing the Docker in Docker `daemon.json` configuration file.
 
-The following tables lists the configurable parameters of the GitHub Actions Runner chart and their default values.
+The following tables lists the configurable parameters of the Docker in Docker chart and their default values.
 
 | Parameter | Description | Default |
 |-----------|-------------|---------|
