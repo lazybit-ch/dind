@@ -11,6 +11,9 @@ global:
 
 replicaCount: 1
 
+# provide extra env variables to the container
+extraEnvVariables: []
+
 image:
   repository: lazybit/dind
   pullPolicy: IfNotPresent
