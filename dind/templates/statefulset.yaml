@@ -56,6 +56,12 @@ spec:
                 fieldRef:
                   apiVersion: v1
                   fieldPath: metadata.name
+            {{- if .Values.extraEnvVariables }}
+            {{- range $key, $value := .Values.extraEnvVariables }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
